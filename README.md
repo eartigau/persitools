@@ -45,9 +45,9 @@ python persicorr.py data.fits --persifile persi.fits
 ```
 
 ## Output
-One you have run the commant, you will get a fits file with the same name as the original file with a `_perscorr` suffix (`2438525t.fits` becomes `2438525t_persicorr.fits`). There is also a pdf (`2438525t_persicorr.pdf` in this case) that illustrates the residual between the s1d projection before and after the correction.
+One you have run the commant, you will get a fits file with the same name as the original file with a `_perscorr` suffix (`2438525t.fits` becomes `2438525t_persicorr.fits`). There is also a pdf (`2438525t_persicorr.png` in this case) that illustrates the residual between the s1d projection before and after the correction.
 
-![Demo correction](2438525t_persicorr.pdf)
+![Demo correction](2438525t_persicorr.png)
 
 
 ## Functions
