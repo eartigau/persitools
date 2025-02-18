@@ -8,8 +8,6 @@ import os  # Importing os for operating system interface
 from astropy.table import Table  # Importing Table from astropy.table for handling table data
 import argparse  # Importing argparse for command-line argument parsing
 
-import fitsio
-
 def write_t(data, file):
     """
     Write a dictionary of data to a Multi-Extension FITS (MEF) file.
@@ -25,24 +23,33 @@ def write_t(data, file):
     Returns:
     None
     """
-    # Open the FITS file for reading and writing ('rw' mode), and allow overwriting if the file already exists (clobber=True).
-    with fitsio.FITS(file, 'rw', clobber=True) as outfile:
-        # Iterate over each key in the data dictionary.
-        for key in data.keys():
-            # Check if the key does not contain '_header' to avoid processing header keys.
-            if '_header' not in key:
-                # Retrieve the data associated with the current key.
-                data_to_write = data[key]
-                
-                # Retrieve the header associated with the current key by appending '_header' to the key.
-                header = data[key + '_header']
-                
-                # Set the 'EXTNAME' keyword in the header to the current key. This names the extension in the FITS file.
-                header['EXTNAME'] = key
-                
-                # Write the data and its header to the FITS file as a new extension.
-                # The extname parameter explicitly sets the extension name in the FITS file.
-                outfile.write(data_to_write, header=header, extname=key)
+
+    # set primary hdu
+    if '_header' not in data:
+        data['_header'] = fits.Header()
+        hdul0 = fits.PrimaryHDU(header=data['_header'])
+    else:
+        hdul0 = fits.PrimaryHDU(header=data['_header'])
+
+    hdus = [hdul0]
+    for key in data.keys():
+        if '_header' in key:
+            continue
+
+        data_fits = data[key]
+        if key+'_header' not in data:
+            header = fits.Header()
+        else:
+            header = data[key + '_header']
+        header['EXTNAME'] = (key,'Name of the extension')
+        # find if it is a table
+        if isinstance(data_fits, Table):
+            hdu = fits.BinTableHDU(data_fits, header=header)#, name=key)
+        else:
+            hdu = fits.ImageHDU(data_fits, header=header)#, name=key)
+        hdus.append(hdu)
+
+    fits.HDUList(hdus).writeto(file, overwrite=True)        
 
 def read_t(file):
     """
@@ -57,23 +64,18 @@ def read_t(file):
     Returns:
     dict: A dictionary containing the data and headers from all the extensions in the FITS file.
     """
-    # Open the FITS file for reading.
-    with fitsio.FITS(file) as infile:
-        # Initialize an empty dictionary to store the data and headers.
-        data = dict()
-        
-        # Iterate over each Header Data Unit (HDU) in the FITS file.
-        for hdu in infile:
-            # Get the extension name of the current HDU.
-            key = hdu.get_extname()
-            
-            # Read the data from the current HDU and store it in the dictionary with the extension name as the key.
-            data[key] = hdu.read()
-            
-            # Read the header from the current HDU and store it in the dictionary with the key appended by '_header'.
-            data[key + '_header'] = hdu.read_header()
     
-    # Return the dictionary containing all the data and headers.
+    data = dict()
+
+    with fits.open(file) as hdul:
+        for hdu in hdul:
+            if 'EXTNAME' in hdu.header:
+                key = hdu.header['EXTNAME']
+                data[key] = hdu.data
+                data[key + '_header'] = hdu.header
+            else:
+                data['_header'] = hdu.header
+    
     return data
 
 
@@ -335,10 +337,6 @@ def correct_persistence(filename, path_to_persifile='persi.fits'):
     write_t(dd, outname)
 
     print("\tPersistence correction completed.")
-
-
-
-filename = 'data/2438525t.fits'
 
 if __name__ == "__main__":
     # Create an argument parser
