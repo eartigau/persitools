@@ -323,8 +323,8 @@ def correct_persistence(filename, path_to_persifile='persi.fits'):
     ylimmin = np.nanpercentile((flux - model1_2d)[ylim_wave_range], 1)
     ax[1].set(ylim=[ylimmin, ylimmax])
 
-    print("\tSaving plot to PNG file...")
-    # Save the plot to a PNG file
+    print("\tSaving plot to png file...")
+    # Save the plot to a png file
     plt.savefig(filename.replace('.fits', '_persicorr.png'))
     plt.close()
 
