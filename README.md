@@ -2,15 +2,15 @@
 
 Persicorr is a Python package designed to correct the persistence effect in astronomical data using a persistence map. This package reads input FITS files, processes the data to correct for persistence, and writes the corrected data back to new FITS files. It also generates plots comparing the data before and after the correction.
 
-### Installation steps
+## Installation steps
 
-## Installation of main code
+### Installation of main code
 
 There's no proper installation script yet (we're working on that). You download the Python script and call it from wherever you want to store it. If you are 100% lazy, you can just run the following command on a Linux station:
 
 ```wget -O persicorr.py https://github.com/eartigau/persitools/raw/refs/heads/main/persicorr.py```
 
-## Getting the persifile
+### Getting the persifile
 
 You will need a sample [persistence](http://www.astro.umontreal.ca/~artigau/persistence/persi.fits) file and a sample [blaze](http://www.astro.umontreal.ca/~artigau/persistence/sample_blaze.fits) file.
 
