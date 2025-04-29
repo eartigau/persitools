@@ -71,7 +71,13 @@ def read_t(file):
         for hdu in hdul:
             if 'EXTNAME' in hdu.header:
                 key = hdu.header['EXTNAME']
-                data[key] = hdu.data
+                tmp = hdu.data
+                if isinstance(tmp,(fits.fitsrec.FITS_rec,fits.BinTableHDU)):
+                    tmp = Table(tmp)
+                else:
+                    tmp = np.array(tmp)
+
+                data[key] = tmp
                 data[key + '_header'] = hdu.header
             else:
                 data['_header'] = hdu.header
