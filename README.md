@@ -2,7 +2,7 @@
 
 Persicorr is a Python package designed to correct the persistence effect in astronomical data using a persistence map. This package reads input FITS files, processes the data to correct for persistence, and writes the corrected data back to new FITS files. It also generates plots comparing the data before and after the correction.
 
-The code works on `e.fits` or `t.fits` files for now. We will make it usable with `e2ds_AB.fits` files in the near future.
+The code works on `e.fits` or `t.fits` or `e2ds` or `e2dsff` files (use `--mode` to tell the code which data you are starting with).
 
 ## Installation steps
 
