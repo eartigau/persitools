@@ -8,6 +8,7 @@ import os  # Importing os for operating system interface
 from astropy.table import Table  # Importing Table from astropy.table for handling table data
 import argparse  # Importing argparse for command-line argument parsing
 
+
 def write_t(data, file):
     """
     Write a dictionary of data to a Multi-Extension FITS (MEF) file.
@@ -42,7 +43,8 @@ def write_t(data, file):
         else:
             header = data[key + '_header']
         header['EXTNAME'] = (key,'Name of the extension')
-        # find if it is a table
+        
+        # Find if it is a table
         if isinstance(data_fits, Table):
             hdu = fits.BinTableHDU(data_fits, header=header)#, name=key)
         else:
@@ -51,6 +53,7 @@ def write_t(data, file):
 
     fits.HDUList(hdus).writeto(file, overwrite=True)        
 
+    
 def read_t(file):
     """
     Read a Multi-Extension FITS (MEF) file and create a dictionary containing all the extensions and their headers.
@@ -111,6 +114,7 @@ def mk_wave_grid(wave1, wave2, step=1000):
 
     return wave
 
+
 def mk1d(wave2d, sp2d, wave1d):
     """
     Create a 1D version of the 2D spectrum data by interpolating onto a 1D wavelength grid.
@@ -140,6 +144,7 @@ def mk1d(wave2d, sp2d, wave1d):
 
     return outsp
 
+
 def bin100(map2d):
     """
     Bin all pixels in the 2D map along the first axis by 100 pixels.
@@ -159,6 +164,7 @@ def bin100(map2d):
         map1d[i] = bn.nanmean(map2d[i * 100:(i + 1) * 100], axis=0)
     
     return map1d
+
 
 def correct_persistence(filename, path_to_persifile='persi.fits'):
     """
@@ -200,16 +206,31 @@ def correct_persistence(filename, path_to_persifile='persi.fits'):
     
     # Truncate the wavelength grid to the nearest 100 in length
     wavegrid = wavegrid[:int(len(wavegrid) / 100) * 100]
-
-    # Define the keys for the wave, flux, and blaze data in the FITS file
-    wave_key, flux_key, blaze_key = 'WaveAB', 'FluxAB', 'BlazeAB'
-
+    
     print("\tReading wave, flux, and blaze data from input FITS file...")
-    # Read the wave, flux, and blaze data from the input FITS file
-    wave = fits.getdata(filename, wave_key)
-    flux = fits.getdata(filename, flux_key)
-    blaze = fits.getdata(filename, blaze_key)
+    
+    if filename[-7:] == 'AB.fits':  # with e2dsff files
+        # Read the names of the wave and blaze files in the header
+        wave_name = fits.getheader(filename)['WAVEFILE']
+        blaze_name = fits.getheader(filename)['CDBBLAZE']
+        
+        calib_dir = '/cosmos99/spirou/apero-data/spirou_offline/calib/'  # directory where the wave and blaze files are found
+        
+        # Read the flux, wave and blaze data
+        flux_key = 'EXT_E2DS_FF'
+        flux = fits.getdata(filename, flux_key)
+        wave = fits.getdata(calib_dir + wave_name)
+        blaze = fits.getdata(calib_dir + blaze_name)
+        
+    else:  # with e.fits and t.fits files
+        # Define the keys for the wave, flux, and blaze data in the FITS file
+        wave_key, flux_key, blaze_key = 'WaveAB', 'FluxAB', 'BlazeAB'
 
+        # Read the wave, flux, and blaze data from the input FITS file
+        flux = fits.getdata(filename, flux_key)
+        wave = fits.getdata(filename, wave_key)
+        blaze = fits.getdata(filename, blaze_key)
+        
     print("\tNormalizing blaze data...")
     # Normalize each order of the blaze data by its median value
     for iord in range(blaze.shape[0]):
@@ -344,6 +365,7 @@ def correct_persistence(filename, path_to_persifile='persi.fits'):
 
     print("\tPersistence correction completed.")
 
+    
 if __name__ == "__main__":
     # Create an argument parser
     parser = argparse.ArgumentParser(description="Correct persistence in astronomical data using a persistence map.")
@@ -357,3 +379,4 @@ if __name__ == "__main__":
     for filename in args.filenames:
         print(f"Processing file: {filename}")
         correct_persistence(filename, args.persifile)
+
